@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/bitly/go-simplejson"
 	"golang.org/x/text/encoding/japanese"
 	"golang.org/x/text/transform"
@@ -30,20 +31,24 @@ const (
 	minuteIndex        = 8
 	precipitationIndex = 9
 	interval           = 40 // 観測から更新までが30分、実行間隔が10分
-	slackUrlKey           = "SLACK_API_KEY"
+	slackUrlKey        = "SLACK_API_KEY"
 )
 
 func main() {
+	lambda.Start(notifyPrecipitation)
+}
+
+func notifyPrecipitation() {
 	slackUrl := os.Getenv(slackUrlKey)
 	msg, err := getMessage()
 	if err != nil {
 		_, _ = fmt.Fprintln(os.Stderr, "an error has occurred when fetching precipitation data")
 		_, _ = fmt.Fprintln(os.Stderr, err.Error())
-		os.Exit(1)
+		return
 	}
 	if msg == "" {
 		_, _ = fmt.Fprintln(os.Stderr, "nothing to inform")
-		os.Exit(0)
+		return
 	}
 
 	fmt.Println(msg)
@@ -51,7 +56,7 @@ func main() {
 	if err != nil {
 		_, _ = fmt.Fprintln(os.Stderr, "an error has occurred when creating json body")
 		_, _ = fmt.Fprintln(os.Stderr, err.Error())
-		os.Exit(1)
+		return
 	}
 	sendJson(json, slackUrl)
 }
