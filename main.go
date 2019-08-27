@@ -22,6 +22,34 @@ type Precipitation struct {
 	precipitation float64
 }
 
+func (prec Precipitation) format() string {
+	base := fmt.Sprintf("%02d:%02d〜の京都の一時間降水量は%.1fmmです\n",
+		prec.date.Hour(),
+		prec.date.Minute(),
+		prec.precipitation)
+	var additionalMessage string
+	if prec.precipitation >= 80 {
+		additionalMessage = "猛烈な雨です!"
+	} else if prec.precipitation >= 50 {
+		additionalMessage = "非常に激しい雨が降ります"
+	} else if prec.precipitation >= 30 {
+		additionalMessage = "激しい雨が降ります"
+	} else if prec.precipitation >= 20 {
+		additionalMessage = "強い雨が降ります"
+	} else if prec.precipitation >= 10 {
+		additionalMessage = "やや強い雨が降ります"
+	} else if prec.precipitation >= 5 {
+		additionalMessage = "やや本降りと言えます"
+	} else if prec.precipitation >= 2 {
+		additionalMessage = "傘が必要になるかもしれません"
+	} else if prec.precipitation >= 1 {
+		additionalMessage = "シトシトとした雨が降ります"
+	} else {
+		return ""
+	}
+	return base + additionalMessage
+}
+
 const (
 	kyotoNo            = "61286"
 	yearIndex          = 4
@@ -90,31 +118,7 @@ func getMessage() (string, error) {
 	if sub := currentTime.Sub(kyotoPrecipitation.date); sub.Minutes() > interval {
 		return "", errors.New("指定の間隔より古いデータが見つかりました")
 	}
-	base := fmt.Sprintf("%02d:%02d〜の京都の一時間降水量は%.1fmmです\n",
-		kyotoPrecipitation.date.Hour(),
-		kyotoPrecipitation.date.Minute(),
-		kyotoPrecipitation.precipitation)
-	var additionalMessage string
-	if kyotoPrecipitation.precipitation >= 80 {
-		additionalMessage = "猛烈な雨です!"
-	} else if kyotoPrecipitation.precipitation >= 50 {
-		additionalMessage = "非常に激しい雨が降ります"
-	} else if kyotoPrecipitation.precipitation >= 30 {
-		additionalMessage = "激しい雨が降ります"
-	} else if kyotoPrecipitation.precipitation >= 20 {
-		additionalMessage = "強い雨が降ります"
-	} else if kyotoPrecipitation.precipitation >= 10 {
-		additionalMessage = "やや強い雨が降ります"
-	} else if kyotoPrecipitation.precipitation >= 5 {
-		additionalMessage = "やや本降りと言えます"
-	} else if kyotoPrecipitation.precipitation >= 2 {
-		additionalMessage = "傘が必要になるかもしれません"
-	} else if kyotoPrecipitation.precipitation >= 1 {
-		additionalMessage = "シトシトとした雨が降ります"
-	} else {
-		return "", nil
-	}
-	return base + additionalMessage, nil
+	return kyotoPrecipitation.format(), nil
 
 }
 
